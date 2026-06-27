@@ -6,6 +6,7 @@ import { CompareProvider } from "@/context/CompareContext";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import CompareBar from "@/components/CompareBar";
+import DataSourceIndicator from "@/components/DataSourceIndicator";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -29,6 +30,7 @@ export default function RootLayout({
             <main className="min-h-[calc(100vh-4rem)]">{children}</main>
             <Footer />
             <CompareBar />
+            <DataSourceIndicator />
           </CompareProvider>
         </I18nProvider>
       </body>
