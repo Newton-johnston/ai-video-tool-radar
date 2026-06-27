@@ -257,10 +257,6 @@ export default function RadarEffect({ tools }: RadarEffectProps) {
       scanAngle += dt * 1.2;
       const scanAlpha = 0.12 + Math.sin(scanAngle * 2) * 0.04;
 
-      const gradient = ctx.createConicalGradient
-        ? undefined
-        : null;
-
       // Draw scan wedge
       const beamWidth = 0.15;
       ctx.save();
