@@ -8,11 +8,6 @@ import { Tool } from "@/types/tool";
 import Link from "next/link";
 import { useMemo } from "react";
 
-// Required for static export with dynamic routes
-export function generateStaticParams() {
-  return mockTools.map((tool) => ({ id: String(tool.id) }));
-}
-
 function getDetailTools(): Tool[] {
   if (typeof window === "undefined") return [...mockTools];
   try {
