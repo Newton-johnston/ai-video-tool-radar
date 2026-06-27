@@ -4,6 +4,7 @@
     "compare": "Compare",
     "findMyTool": "Find My Tool",
     "longVideo": "Long Video Mode",
+    "submit": "Submit",
     "admin": "Admin"
   },
   "home": {
@@ -34,7 +35,11 @@
     "seconds": "s",
     "freeAccess": "Free Access",
     "notVerified": "Not verified",
-    "compareSelected": "Compare ({count}/3)"
+    "compareSelected": "Compare ({count}/3)",
+    "bestFor": "Best for",
+    "limitation": "Limitation",
+    "officialSite": "Official Site",
+    "details": "Details"
   },
   "detail": {
     "back": "Back to Discover",

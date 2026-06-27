@@ -1,0 +1,12 @@
+name = "ai-video-tool-radar-api"
+main = "api.js"
+compatibility_date = "2025-01-01"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "ai-video-tool-radar-db"
+database_id = "your-database-id-here"
+
+[[kv_namespaces]]
+binding = "KV"
+id = "your-kv-id-here"
