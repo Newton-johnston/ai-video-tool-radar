@@ -7,20 +7,7 @@ import {
   FREE_ACCESS_TYPES,
   ToolSubmission,
 } from "@/types/tool";
-
-function getStoredSubmissions(): ToolSubmission[] {
-  if (typeof window === "undefined") return [];
-  try {
-    const stored = localStorage.getItem("pending_submissions");
-    return stored ? JSON.parse(stored) : [];
-  } catch {
-    return [];
-  }
-}
-
-function saveSubmissions(submissions: ToolSubmission[]) {
-  localStorage.setItem("pending_submissions", JSON.stringify(submissions));
-}
+import { submitTool } from "@/hooks/useTools";
 
 export default function SubmitPage() {
   const { t, locale } = useI18n();
@@ -61,20 +48,14 @@ export default function SubmitPage() {
     return errs;
   }, [form, isZh]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const errs = validate();
     setErrors(errs);
     if (Object.keys(errs).length > 0) return;
 
-    const submissions = getStoredSubmissions();
-    const newId =
-      submissions.length > 0
-        ? Math.max(...submissions.map((s) => s.id)) + 1
-        : 1;
-
     const newSubmission: ToolSubmission = {
-      id: newId,
+      id: Date.now(),
       name: form.name.trim(),
       official_url: form.official_url.trim(),
       category: form.category,
@@ -86,7 +67,17 @@ export default function SubmitPage() {
       submitted_at: new Date().toISOString(),
     };
 
-    saveSubmissions([...submissions, newSubmission]);
+    try {
+      await submitTool(newSubmission);
+    } catch {
+      // Fallback to localStorage
+      try {
+        const stored = localStorage.getItem("pending_submissions");
+        const submissions: ToolSubmission[] = stored ? JSON.parse(stored) : [];
+        submissions.push(newSubmission);
+        localStorage.setItem("pending_submissions", JSON.stringify(submissions));
+      } catch {}
+    }
     setSubmitted(true);
   };
 

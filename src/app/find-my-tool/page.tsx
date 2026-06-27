@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from "react";
 import { useI18n } from "@/context/I18nContext";
-import { mockTools } from "@/data/mockTools";
+import { useTools } from "@/hooks/useTools";
 import { Tool } from "@/types/tool";
 import Link from "next/link";
 
@@ -229,10 +229,12 @@ export default function FindMyToolPage() {
 
   const stepIndex = step === "q1" ? 0 : step === "q2" ? 1 : step === "q3" ? 2 : 3;
 
+  const { tools: allTools } = useTools();
+
   const results = useMemo(() => {
     if (step !== "results") return [];
 
-    let filtered = [...mockTools];
+    let filtered = [...allTools];
 
     const useCaseToCategory: Record<string, string[]> = {
       textToVideo: ["Text-to-Video"],

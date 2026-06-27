@@ -1,25 +1,15 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { useI18n } from "@/context/I18nContext";
-import { mockTools } from "@/data/mockTools";
-import { Tool, FilterState } from "@/types/tool";
+import { FilterState } from "@/types/tool";
+import { useTools } from "@/hooks/useTools";
 import FilterBar from "@/components/FilterBar";
 import ToolCard from "@/components/ToolCard";
 
-function getDiscoverTools(): Tool[] {
-  if (typeof window === "undefined") return [...mockTools];
-  try {
-    const stored = localStorage.getItem("admin_tools");
-    return stored ? JSON.parse(stored) : [...mockTools];
-  } catch {
-    return [...mockTools];
-  }
-}
-
 export default function DiscoverPage() {
   const { t } = useI18n();
-  const [allTools, setAllTools] = useState<Tool[]>([]);
+  const { tools: allTools, loading } = useTools();
   const [filters, setFilters] = useState<FilterState>({
     search: "",
     category: "",
@@ -29,10 +19,6 @@ export default function DiscoverPage() {
     sort_by: "quality_score",
     sort_order: "desc",
   });
-
-  useEffect(() => {
-    setAllTools(getDiscoverTools());
-  }, []);
 
   const filteredTools = useMemo(() => {
     let result = [...allTools];

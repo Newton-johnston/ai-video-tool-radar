@@ -2,10 +2,11 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useI18n } from "@/context/I18nContext";
-import { mockTools } from "@/data/mockTools";
+import { useTools, adminCreateTool, adminUpdateTool, adminDeleteTool } from "@/hooks/useTools";
 import { Tool, CATEGORIES, FREE_ACCESS_TYPES, ToolSubmission } from "@/types/tool";
 
 const ADMIN_PASSWORD = "admin123";
+const API_TOKEN = "ai-video-radar-admin-token-2025";
 
 const emptyTool: Omit<Tool, "id"> = {
   name: "",
@@ -26,26 +27,9 @@ const emptyTool: Omit<Tool, "id"> = {
   source_url: "",
 };
 
-function getStoredTools(): Tool[] {
-  try {
-    const stored = localStorage.getItem("admin_tools");
-    return stored ? JSON.parse(stored) : [...mockTools];
-  } catch {
-    return [...mockTools];
-  }
-}
-
-function getStoredSubmissions(): ToolSubmission[] {
-  try {
-    const stored = localStorage.getItem("pending_submissions");
-    return stored ? JSON.parse(stored) : [];
-  } catch {
-    return [];
-  }
-}
-
 export default function AdminPage() {
   const { t } = useI18n();
+  const { tools: apiTools, loading } = useTools();
   const [authenticated, setAuthenticated] = useState(false);
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -66,15 +50,21 @@ export default function AdminPage() {
     description_zh: "",
     submitter_email: "",
   });
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    setTools(getStoredTools());
-    setSubmissions(getStoredSubmissions());
+    setTools(apiTools);
+  }, [apiTools]);
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem("pending_submissions");
+      if (stored) setSubmissions(JSON.parse(stored));
+    } catch {}
   }, []);
 
-  const saveTools = useCallback((updatedTools: Tool[]) => {
-    setTools(updatedTools);
-    localStorage.setItem("admin_tools", JSON.stringify(updatedTools));
+  const saveTools = useCallback(async (updatedTools: Tool[]) => {
+    // Admin changes are saved via API; list is refreshed from API
   }, []);
 
   const saveSubmissions = useCallback(
@@ -116,23 +106,41 @@ export default function AdminPage() {
     setShowForm(true);
   };
 
-  const handleDelete = (id: number) => {
+  const handleDelete = async (id: number) => {
     if (window.confirm(t("admin.confirmDelete"))) {
-      saveTools(tools.filter((t) => t.id !== id));
+      try {
+        await adminDeleteTool(id, API_TOKEN);
+        setTools((prev) => prev.filter((t) => t.id !== id));
+      } catch {
+        // Fallback: local delete
+        setTools((prev) => prev.filter((t) => t.id !== id));
+      }
     }
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!formData.name || !formData.category) return;
-    if (editingTool) {
-      const updated = tools.map((t) =>
-        t.id === editingTool.id ? { ...formData, id: editingTool.id } : t
-      );
-      saveTools(updated);
-    } else {
-      const newId = Math.max(0, ...tools.map((t) => t.id)) + 1;
-      saveTools([...tools, { ...formData, id: newId }]);
+    setSaving(true);
+    try {
+      if (editingTool) {
+        const updated = await adminUpdateTool(editingTool.id, formData, API_TOKEN);
+        setTools((prev) => prev.map((t) => (t.id === editingTool.id ? updated : t)));
+      } else {
+        const created = await adminCreateTool(formData, API_TOKEN);
+        setTools((prev) => [...prev, created]);
+      }
+    } catch {
+      // Fallback: local CRUD
+      if (editingTool) {
+        setTools((prev) =>
+          prev.map((t) => (t.id === editingTool.id ? { ...formData, id: editingTool.id } : t))
+        );
+      } else {
+        const newId = Math.max(0, ...tools.map((t) => t.id)) + 1;
+        setTools((prev) => [...prev, { ...formData, id: newId }]);
+      }
     }
+    setSaving(false);
     setShowForm(false);
   };
 
@@ -161,7 +169,7 @@ export default function AdminPage() {
     setEditingSubmission(null);
   };
 
-  const approveSubmission = (
+  const approveSubmission = async (
     submission: ToolSubmission,
     editedData?: {
       name: string;
@@ -172,13 +180,9 @@ export default function AdminPage() {
       description_zh: string;
     }
   ) => {
-    const allTools = getStoredTools();
-    const newId = Math.max(0, ...allTools.map((t) => t.id)) + 1;
-
     const data = editedData || submission;
 
-    const newTool: Tool = {
-      id: newId,
+    const newTool = {
       name: data.name,
       official_url: data.official_url,
       category: data.category,
@@ -197,8 +201,14 @@ export default function AdminPage() {
       source_url: data.official_url,
     };
 
-    const updatedTools = [...allTools, newTool];
-    saveTools(updatedTools);
+    try {
+      const created = await adminCreateTool(newTool, API_TOKEN);
+      setTools((prev) => [...prev, created]);
+    } catch {
+      // Fallback: local add
+      const newId = Math.max(0, ...tools.map((t) => t.id)) + 1;
+      setTools((prev) => [...prev, { ...newTool, id: newId } as Tool]);
+    }
 
     const updatedSubmissions = submissions.map((s) =>
       s.id === submission.id

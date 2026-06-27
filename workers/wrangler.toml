@@ -5,8 +5,4 @@ compatibility_date = "2025-01-01"
 [[d1_databases]]
 binding = "DB"
 database_name = "ai-video-tool-radar-db"
-database_id = "your-database-id-here"
-
-[[kv_namespaces]]
-binding = "KV"
-id = "your-kv-id-here"
+database_id = "8bedef54-a7ba-4550-b9d0-91a61043f912"

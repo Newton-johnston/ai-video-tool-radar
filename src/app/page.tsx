@@ -1,30 +1,16 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { useI18n } from "@/context/I18nContext";
-import { mockTools } from "@/data/mockTools";
-import { Tool, CATEGORIES, FilterState } from "@/types/tool";
+import { CATEGORIES, FilterState } from "@/types/tool";
+import { useTools } from "@/hooks/useTools";
 import Link from "next/link";
 import ToolCard from "@/components/ToolCard";
 import RadarEffect from "@/components/RadarEffect";
 
-function getHomeTools(): Tool[] {
-  if (typeof window === "undefined") return [...mockTools];
-  try {
-    const stored = localStorage.getItem("admin_tools");
-    return stored ? JSON.parse(stored) : [...mockTools];
-  } catch {
-    return [...mockTools];
-  }
-}
-
 export default function HomePage() {
   const { t, locale } = useI18n();
-  const [allTools, setAllTools] = useState<Tool[]>([]);
-
-  useEffect(() => {
-    setAllTools(getHomeTools());
-  }, []);
+  const { tools: allTools, loading } = useTools();
 
   const [filters, setFilters] = useState<FilterState>({
     search: "",

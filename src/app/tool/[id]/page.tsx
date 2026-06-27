@@ -3,20 +3,8 @@
 import { useParams } from "next/navigation";
 import { useI18n } from "@/context/I18nContext";
 import { useCompare } from "@/context/CompareContext";
-import { mockTools } from "@/data/mockTools";
-import { Tool } from "@/types/tool";
+import { useTool } from "@/hooks/useTools";
 import Link from "next/link";
-import { useMemo } from "react";
-
-function getDetailTools(): Tool[] {
-  if (typeof window === "undefined") return [...mockTools];
-  try {
-    const stored = localStorage.getItem("admin_tools");
-    return stored ? JSON.parse(stored) : [...mockTools];
-  } catch {
-    return [...mockTools];
-  }
-}
 
 function ScoreBar({ score, label, color }: { score: number | null; label: string; color: string }) {
   const val = score ?? 0;
@@ -42,9 +30,15 @@ export default function ToolDetailPage() {
   const params = useParams();
   const { t, locale } = useI18n();
   const { addToCompare, removeFromCompare, isInCompare } = useCompare();
+  const { tool, loading } = useTool(Number(params.id));
 
-  const allTools = useMemo(() => getDetailTools(), []);
-  const tool = allTools.find((t) => t.id === Number(params.id));
+  if (loading) {
+    return (
+      <div className="max-w-3xl mx-auto px-4 py-20 text-center">
+        <div className="w-8 h-8 border-2 border-primary-500 border-t-transparent rounded-full animate-spin mx-auto" />
+      </div>
+    );
+  }
 
   if (!tool) {
     return (

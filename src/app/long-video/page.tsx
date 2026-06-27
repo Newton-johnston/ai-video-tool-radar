@@ -2,14 +2,16 @@
 
 import { useMemo } from "react";
 import { useI18n } from "@/context/I18nContext";
-import { mockTools } from "@/data/mockTools";
+import { useTools } from "@/hooks/useTools";
 import Link from "next/link";
+
+import { Tool } from "@/types/tool";
 
 interface WorkflowCategory {
   key: string;
   titleKey: string;
   descKey: string;
-  filter: (tool: (typeof mockTools)[number]) => boolean;
+  filter: (tool: Tool) => boolean;
 }
 
 const workflowCategories: WorkflowCategory[] = [
@@ -52,14 +54,15 @@ const workflowCategories: WorkflowCategory[] = [
 
 export default function LongVideoPage() {
   const { t } = useI18n();
+  const { tools: allTools } = useTools();
 
   const categorizedTools = useMemo(
     () =>
       workflowCategories.map((cat) => ({
         ...cat,
-        tools: mockTools.filter(cat.filter).slice(0, 4),
+        tools: allTools.filter(cat.filter).slice(0, 4),
       })),
-    []
+    [allTools]
   );
 
   return (

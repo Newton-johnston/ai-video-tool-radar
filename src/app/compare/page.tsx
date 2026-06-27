@@ -3,7 +3,7 @@
 import { useState, useMemo } from "react";
 import { useI18n } from "@/context/I18nContext";
 import { useCompare } from "@/context/CompareContext";
-import { mockTools } from "@/data/mockTools";
+import { useTools } from "@/hooks/useTools";
 import ScoreBadge from "@/components/ScoreBadge";
 
 const compareDimensions = [
@@ -25,21 +25,22 @@ export default function ComparePage() {
   const { t } = useI18n();
   const { compareIds, removeFromCompare, clearCompare, addToCompare } =
     useCompare();
+  const { tools: allTools } = useTools();
   const [searchQuery, setSearchQuery] = useState("");
 
   const compareTools = useMemo(
-    () => compareIds.map((id) => mockTools.find((t) => t.id === id)).filter(Boolean),
-    [compareIds]
+    () => compareIds.map((id) => allTools.find((t) => t.id === id)).filter(Boolean),
+    [compareIds, allTools]
   );
 
   const availableTools = useMemo(
     () =>
-      mockTools.filter(
+      allTools.filter(
         (t) =>
           !compareIds.includes(t.id) &&
           t.name.toLowerCase().includes(searchQuery.toLowerCase())
       ),
-    [compareIds, searchQuery]
+    [compareIds, searchQuery, allTools]
   );
 
   const displayValue = (val: unknown): string => {
